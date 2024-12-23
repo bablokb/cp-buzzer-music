@@ -20,9 +20,9 @@ BUF_SIZE = 4096
 class MusicReader:
   """ read notes from a file or a string """
 
-  def __init__(self):
+  def __init__(self,bpm=60,ref=0.25):
     """ constructor """
-    pass
+    self._btime = 60*ref/bpm
 
   # --- read song from a file   ----------------------------------------------
 
@@ -55,7 +55,9 @@ class MusicReader:
     song = song.replace("\n","").replace("\r","")
     if song[-1] != ';':
       song += ';'
-      yield from self._parse(song)
+    notes = [note for note in self._parse(song) if note]
+    notes.sort(key=lambda note: note[0])
+    return notes
       
   # --- parse song   ---------------------------------------------------------
 
@@ -77,7 +79,7 @@ class MusicReader:
     for note in notes:
       try:
         t, pitch, duration, _ = note.split(" ")   # ignore instrument
-        yield t, pitch, duration
+        yield float(t)*self._btime, pitch, float(duration)*self._btime
       except:
         raise
     yield rest
