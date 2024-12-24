@@ -51,13 +51,13 @@ HAPPY_BIRTHDAY = """
 reader = MusicReader()
 print("reading notes from string:")
 i = 1
-for note in reader.load(HAPPY_BIRTHDAY):
+for note in reader.load(song=HAPPY_BIRTHDAY):
   print(f"  {i:4d}: {note}")
   i += 1
 time.sleep(3)
 
 print("reading notes from file:")
 i = 1
-for note in reader.read("music.txt"):
+for note in reader.load(filename="music.txt"):
   print(f"  {i:4d}: {note}")
   i += 1
