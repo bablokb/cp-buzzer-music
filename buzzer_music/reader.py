@@ -24,9 +24,22 @@ class MusicReader:
     """ constructor """
     self._btime = 60*ref/bpm
 
+  # --- load song from a file or string   ------------------------------------
+
+  def load(self,filename=None, song=None):
+    """ load music from a file or a given string """
+
+    if filename is None and song is None:
+      raise ValueError("must provide either filename or song as string")
+
+    if filename is None:
+      yield from self._load(song)
+    else:
+      yield from self._read(filename)
+      
   # --- read song from a file   ----------------------------------------------
 
-  def read(self,filename):
+  def _read(self,filename):
     """ read and parse a file with notes """
 
     file_size = os.stat(filename)[6]
@@ -49,16 +62,16 @@ class MusicReader:
 
   # --- load song from a string   --------------------------------------------
 
-  def load(self,song):
-    """ parse a string with notes """
+  def _load(self, song):
+    """ load music from a file or a given string """
 
     song = song.replace("\n","").replace("\r","")
     if song[-1] != ';':
       song += ';'
     notes = [note for note in self._parse(song) if note]
     notes.sort(key=lambda note: note[0])
-    return notes
-      
+    yield from notes
+
   # --- parse song   ---------------------------------------------------------
 
   def _parse(self,buffer):
