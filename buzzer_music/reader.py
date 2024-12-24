@@ -4,6 +4,10 @@
 # Note that this class uses the onlinesequencer.net schematic format:
 # Time, Note, Duration, Instrument; ...
 #
+# When reading from a filename, the music-data needs preprocessing. See
+# tools/preprocess-mucic.sh. When reading from a string, the header
+# ('Online Sequencer:123456:') and the trailing ':' need to be removed manually.
+#
 # Author: Bernhard Bablok
 # License: GPL3
 #
@@ -42,23 +46,10 @@ class MusicReader:
   def _read(self,filename):
     """ read and parse a file with notes """
 
-    file_size = os.stat(filename)[6]
-    n_total = 0
-    rest = ""
     with open(filename,"rt") as file:
-      while n_total < file_size:
-        buf = file.read(BUF_SIZE)
-        for result in self._parse(rest+buf):
-          if isinstance(result,tuple):
-            yield result
-          else:
-            rest = result
-            break
-        n_total += len(buf)
-
-    # in case the song does not end with a ';'
-    if rest:
-      yield from self._parse(rest+";")
+      for note in file:
+        t, pitch, duration, _ = note.split(" ")   # ignore instrument
+        yield float(t)*self._btime, pitch, float(duration)*self._btime
 
   # --- load song from a string   --------------------------------------------
 
