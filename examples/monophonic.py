@@ -57,5 +57,5 @@ async def main(notes):
   buzzer.deinit()
 
 reader = MusicReader(bpm=120)
-notes = reader.load(HAPPY_BIRTHDAY)
+notes = reader.load(song=HAPPY_BIRTHDAY)
 asyncio.run(main(notes))
