@@ -52,7 +52,7 @@ async def main(notes):
     if delay > 0:
       await asyncio.sleep(delay)
     print(*note)
-    t = asyncio.create_task(buzzer.play(note[1],note[2]))
+    t = asyncio.create_task(buzzer.tone(note[1],note[2]))
     await t
   buzzer.deinit()
 

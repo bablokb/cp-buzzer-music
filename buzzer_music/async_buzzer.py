@@ -31,11 +31,11 @@ class AsyncBuzzer:
     """ free ressources """
     self._pwm.deinit()
 
-  async def play(self,tone,duration,volume=10):
+  async def tone(self,pitch,duration,volume=10):
     """ play the tone for the given duration (volume: 1-10) """
 
     await self._lock.acquire()
-    self._pwm.frequency = PITCH[tone]
+    self._pwm.frequency = PITCH[pitch]
     self._pwm.duty_cycle = int(DC_ON/VOLDIV[volume-1])
     await asyncio.sleep(duration)
     self._pwm.duty_cycle = DC_OFF

@@ -23,15 +23,15 @@ NOTES = [('C4',1,3),('E4',1,7),('G4',1,8),('C5',1.5,10)]
 async def main1():
   buzzer = AsyncBuzzer(board.GP18)
   for note in NOTES:
-    t = asyncio.create_task(buzzer.play(*note))
+    t = asyncio.create_task(buzzer.tone(*note))
     await t
   buzzer.deinit()
 
 # Create and start all tasks at once.
-# Will be serialized using a lock within buzzer.play()
+# Will be serialized using a lock within buzzer.tone()
 async def main2():
   buzzer = AsyncBuzzer(board.GP18)
-  await asyncio.gather(*[buzzer.play(*note) for note in NOTES])
+  await asyncio.gather(*[buzzer.tone(*note) for note in NOTES])
   buzzer.deinit()
 
 asyncio.run(main1())
