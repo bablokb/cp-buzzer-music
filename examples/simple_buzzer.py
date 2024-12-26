@@ -19,12 +19,11 @@ from buzzer_music.async_buzzer import AsyncBuzzer
 # notes (pitch,duration,volume),...
 NOTES = [('C4',1,3),('E4',1,7),('G4',1,8),('C5',1.5,10)]
 
-# Sequentially create and wait for task
+# Sequentially create and wait for coro-object
 async def main1():
   buzzer = AsyncBuzzer(board.GP18)
   for note in NOTES:
-    t = asyncio.create_task(buzzer.tone(*note))
-    await t
+    await buzzer.tone(*note)
   buzzer.deinit()
 
 # Create and start all tasks at once.
