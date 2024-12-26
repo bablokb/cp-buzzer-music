@@ -35,6 +35,15 @@ class AsyncBuzzer:
     """ play the tone for the given duration (volume: 1-10) """
 
     await self._lock.acquire()
+    if not volume:
+      await asyncio.sleep(duration)  # just sleep for for zero volume
+      return
+    if volume < 1:
+      volume = int(round(volume*10,0))
+    elif volume > 10 and volume < 101:
+      volume = int(round(volume/10,0))
+    else:
+      volume = min(volume,10)
     self._pwm.frequency = PITCH[pitch]
     self._pwm.duty_cycle = int(DC_ON/VOLDIV[volume-1])
     await asyncio.sleep(duration)
