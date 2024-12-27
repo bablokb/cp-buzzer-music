@@ -31,7 +31,7 @@ class AsyncBuzzer:
     """ free ressources """
     self._pwm.deinit()
 
-  async def tone(self,pitch,duration,volume=10):
+  async def tone(self,pitch,duration,volume=10,on_end=None):
     """ play the tone for the given duration (volume: 1-10) """
 
     await self._lock.acquire()
@@ -49,6 +49,10 @@ class AsyncBuzzer:
     await asyncio.sleep(duration)
     self._pwm.duty_cycle = DC_OFF
     self._lock.release()
+
+    # execute callback if provided (workaround for missing task.add_done_callback)
+    if on_end:
+      on_end(self)
 
   def busy(self):
     """ check busy state """
