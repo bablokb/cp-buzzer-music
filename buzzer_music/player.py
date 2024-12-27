@@ -19,10 +19,13 @@
 """ Implementation of class MusicPlayer """
 
 import time
+import gc
 import collections
 import asyncio
 from buzzer_music.async_buzzer import AsyncBuzzer
 from buzzer_music.reader       import MusicReader
+
+GC_INTERVAL = 10
 
 class MusicPlayer:
   """ play notes on (multiple) buzzers """
@@ -57,6 +60,16 @@ class MusicPlayer:
         if not buzzer.busy():
           return buzzer
       await asyncio.sleep(0)
+
+  # --- gc task   ------------------------------------------------------------
+
+  async def _gc(self):
+    """ run gc periodically """
+    while not self._stop:
+      await asyncio.sleep(GC_INTERVAL)
+      self._print(f"g: free memory: {gc.mem_free()}")
+      gc.collect()
+      self._print(f"g: free memory: {gc.mem_free()}")
 
   # --- reader task   --------------------------------------------------------
 
@@ -136,7 +149,9 @@ class MusicPlayer:
     self._start = time.monotonic()
     r_task = asyncio.create_task(self._read(filename,song))
     d_task = asyncio.create_task(self._dispatch())
-    await asyncio.gather(r_task,d_task)
+    g_task = asyncio.create_task(self._gc())
+    await asyncio.gather(r_task,d_task,g_task)
+    self._stop = True
     self._print("p: play finished")
 
   # --- pause song   ----------------------------------------------------------
