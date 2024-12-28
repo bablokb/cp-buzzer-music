@@ -102,6 +102,7 @@ class MusicPlayer:
 
     self._print("d: starting dispatcher task...")
     last_note = None
+    note_nr = 0
     while True:
       if not len(self._queue):     # nothing to play
         await asyncio.sleep(0)
@@ -129,18 +130,19 @@ class MusicPlayer:
       while (len(self._queue) and
              self._queue[-1] is not None and now >= self._queue[-1][0]):
         note = self._queue.pop()
-        self._print(f"   processing note: {note}")
-        notes.append(note)
+        note_nr += 1
+        self._print(f"   processing note {note_nr}: {note}")
+        notes.append((note,note_nr))
       self._print(f"d: collecting done")
 
       # dispatch notes
       if not len(notes):
         continue
       self._print(f"d: dispatching notes")
-      for note in notes:
+      for note,nnr in notes:
         self._print(f"   waiting for buzzer...")
         bnr,b = await self._free_buzzer()
-        self._print(f"   playing note on buzzer {bnr}: {note}")
+        self._print(f"   playing note {nnr} on buzzer {bnr}: {note}")
         t = asyncio.create_task(b.tone(*note[1:]))
         last_note = note
       self._print(f"d: dispatching done")
