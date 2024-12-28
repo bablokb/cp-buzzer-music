@@ -25,7 +25,7 @@ import asyncio
 from buzzer_music.async_buzzer import AsyncBuzzer
 from buzzer_music.reader       import MusicReader
 
-GC_INTERVAL = 10
+GC_INTERVAL = 60
 
 class MusicPlayer:
   """ play notes on (multiple) buzzers """
@@ -56,9 +56,9 @@ class MusicPlayer:
   async def _free_buzzer(self):
     """ return first free buzzer """
     while True:
-      for buzzer in self._buzzers:
+      for index,buzzer in enumerate(self._buzzers):
         if not buzzer.busy():
-          return buzzer
+          return index,buzzer
       await asyncio.sleep(0)
 
   # --- gc task   ------------------------------------------------------------
@@ -95,7 +95,7 @@ class MusicPlayer:
     """ dispatcher task providing notes to the buzzers """
 
     self._print("d: starting dispatcher task...")
-    bg_tasks = set()
+    last_note = None
     while True:
       if not len(self._queue):     # nothing to play
         await asyncio.sleep(0)
@@ -103,8 +103,10 @@ class MusicPlayer:
       if self._queue[-1] is None:  # end of music
         self._print(f"d: end of music")
         self._queue.pop()
-        while len(bg_tasks):
-          await asyncio.sleep(0)
+        # wait for last note to finish
+        await asyncio.sleep(last_note[0]-self._start+last_note[2])
+        self._print(f"d: dispatcher task finished")
+        self._stop = True
         return
 
       now = time.monotonic() - self._start
@@ -131,12 +133,11 @@ class MusicPlayer:
       self._print(f"d: dispatching notes")
       for note in notes:
         self._print(f"   waiting for buzzer...")
-        b = await self._free_buzzer()
-        self._print(f"   playing note: {note}")
-        t = asyncio.create_task(b.tone(*note[1:],on_end=bg_tasks.discard))
-        bg_tasks.add(t)
+        bnr,b = await self._free_buzzer()
+        self._print(f"   playing note on buzzer {bnr}: {note}")
+        t = asyncio.create_task(b.tone(*note[1:]))
+        last_note = note
       self._print(f"d: dispatching done")
-    self._print(f"d: dispatching done")
 
   # ---  play   --------------------------------------------------------------
 
@@ -151,7 +152,6 @@ class MusicPlayer:
     d_task = asyncio.create_task(self._dispatch())
     g_task = asyncio.create_task(self._gc())
     await asyncio.gather(r_task,d_task,g_task)
-    self._stop = True
     self._print("p: play finished")
 
   # --- pause song   ----------------------------------------------------------
