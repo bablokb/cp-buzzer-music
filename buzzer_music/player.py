@@ -37,8 +37,8 @@ class MusicPlayer:
     self._volume  = volume
     self._reader  = MusicReader(bpm,ref)
     self._qlimit  = qlength*len(pins)
-    #self._queue   = collections.deque([],self._qlimit,True)
     self._queue   = []
+    self._tasks   = []
     self._debug   = debug
     self._stop    = False
     self._pause   = False
@@ -66,11 +66,16 @@ class MusicPlayer:
 
   async def _gc(self):
     """ run gc periodically """
-    while not self._stop:
-      await asyncio.sleep(GC_INTERVAL)
-      self._print(f"g: free memory: {gc.mem_free()}")
-      gc.collect()
-      self._print(f"g: free memory: {gc.mem_free()}")
+    try:
+      self._print(f"g: starting GC-task")
+      while True:
+        await asyncio.sleep(GC_INTERVAL)
+        self._print(f"g: free memory: {gc.mem_free()}")
+        gc.collect()
+        self._print(f"g: free memory: {gc.mem_free()}")
+    except:
+      pass
+    self._print(f"g: GC-task finished")
 
   # --- reader task   --------------------------------------------------------
 
@@ -105,9 +110,9 @@ class MusicPlayer:
         self._print(f"d: end of music")
         self._queue.pop()
         # wait for last note to finish
-        await asyncio.sleep(last_note[0]-self._start+last_note[2])
+        await asyncio.sleep(last_note[2])
         self._print(f"d: dispatcher task finished")
-        self._stop = True
+        self.stop()
         return
 
       now = time.monotonic() - self._start
@@ -149,10 +154,11 @@ class MusicPlayer:
 
     self._print("p: starting play")
     self._start = time.monotonic()
-    r_task = asyncio.create_task(self._read(filename,song))
-    d_task = asyncio.create_task(self._dispatch())
-    g_task = asyncio.create_task(self._gc())
-    await asyncio.gather(r_task,d_task,g_task)
+    self._tasks.extend(
+      [asyncio.create_task(self._read(filename,song)),
+       asyncio.create_task(self._dispatch()),
+       asyncio.create_task(self._gc())])
+    await asyncio.gather(*self._tasks)
     self._print("p: play finished")
 
   # --- pause song   ----------------------------------------------------------
@@ -165,7 +171,14 @@ class MusicPlayer:
 
   def stop(self):
     """ stop the player """
-    pass
+    for t in self._tasks:
+      try:
+        if not t.done():
+          t.cancel()
+      except:
+        pass
+    self._tasks =  []
+    self._stop = True
 
   # --- restart song   -------------------------------------------------------
 
