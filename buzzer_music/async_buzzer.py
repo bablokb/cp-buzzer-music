@@ -24,8 +24,9 @@ class AsyncBuzzer:
 
   def __init__(self,pin):
     """ constructor """
-    self._pwm = pwmio.PWMOut(pin,variable_frequency=True)
+    self._pwm  = pwmio.PWMOut(pin,variable_frequency=True)
     self._lock = asyncio.Lock()
+    self.busy  = False   # set busy externally before calling tone()!
 
   def deinit(self):
     """ free ressources """
@@ -49,6 +50,7 @@ class AsyncBuzzer:
     await asyncio.sleep(duration)
     self._pwm.duty_cycle = DC_OFF
     self._lock.release()
+    self.busy = False
 
     # execute callback if provided (workaround for missing task.add_done_callback)
     if on_end:

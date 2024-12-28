@@ -57,7 +57,8 @@ class MusicPlayer:
     """ return first free buzzer """
     while True:
       for index,buzzer in enumerate(self._buzzers):
-        if not buzzer.busy():
+        if not buzzer.busy:
+          buzzer.busy = True
           return index,buzzer
       await asyncio.sleep(0)
 
