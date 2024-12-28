@@ -50,7 +50,7 @@ class MusicReader:
       for note in file:
         if not note or note[0] == "#":  # skip empty lines and comments
           continue
-        t, pitch, duration, _ = note.split(" ")   # ignore instrument
+        t, pitch, duration, *_ = note.split(" ")   # ignore instrument
         yield float(t)*self._btime, pitch, float(duration)*self._btime
 
   # --- load song from a string   --------------------------------------------
@@ -84,7 +84,7 @@ class MusicReader:
     # with one list of notes for every given t
     for note in notes:
       try:
-        t, pitch, duration, _ = note.split(" ")   # ignore instrument
+        t, pitch, duration, *_ = note.split(" ")   # ignore instrument
         yield float(t)*self._btime, pitch, float(duration)*self._btime
       except:
         raise
