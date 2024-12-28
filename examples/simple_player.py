@@ -44,7 +44,8 @@ HAPPY_BIRTHDAY = """
 """
 
 async def main():
-  player = MusicPlayer(pins=[board.GP18],debug=False)
+  player = MusicPlayer(
+    pins=[board.GP18,board.GP17,board.GP15],bpm=60,debug=True)
   #await player.play(song=HAPPY_BIRTHDAY)
   await player.play(filename="music.txt")
   player.deinit()
