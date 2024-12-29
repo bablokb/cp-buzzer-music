@@ -29,27 +29,40 @@ class MusicReader:
 
   # --- load song from a file or string   ------------------------------------
 
-  def load(self,filename=None, song=None, bpm=60, ref=0.25):
+  def load(self,filename=None, song=None, bpm=None, ref=None):
     """ load music from a file or a given string """
 
     if filename is None and song is None:
       raise ValueError("must provide either filename or song as string")
 
     if filename is None:
+      bpm = bpm if bpm else 60
+      ref = ref if ref else 0.25
       yield from self._load(song,60*ref/bpm)
     else:
-      yield from self._read(filename,60*ref/bpm)
-      
+      yield from self._read(filename,bpm,ref)
+
   # --- read song from a file   ----------------------------------------------
 
-  def _read(self,filename,btime):
+  def _read(self,filename,bpm=None,ref=None):
     """ read and parse a file with notes """
 
+    btime = None
     with open(filename,"rt") as file:
       for note in file:
         if not note or note[0] == "#":  # skip empty lines and comments
           continue
+        elif "bpm" in note:
+          if not bpm:
+            bpm = int(note.split("=")[1])
+          continue
+        elif "ref" in note:
+          if not ref:
+            ref = float(note.split("=")[1])
+          continue
         t, pitch, duration, *_ = note.split(" ")   # ignore instrument
+        if not btime:
+          btime = 60*(ref if ref else 0.25)/(bpm if bpm else 60)
         yield float(t)*btime, pitch, float(duration)*btime
 
   # --- load song from a string   --------------------------------------------

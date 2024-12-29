@@ -149,7 +149,7 @@ class MusicPlayer:
 
   # ---  play   --------------------------------------------------------------
 
-  async def play(self,filename=None, song=None, bpm=60, ref=0.25, loop=False):
+  async def play(self,filename=None, song=None, bpm=None, ref=None, loop=False):
     """ play music """
     self._stop    = False
     self._pause   = False
