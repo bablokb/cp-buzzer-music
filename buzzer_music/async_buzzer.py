@@ -26,7 +26,7 @@ class AsyncBuzzer:
     """ constructor """
     self._pwm  = pwmio.PWMOut(pin,variable_frequency=True)
     self._lock = asyncio.Lock()
-    self.busy  = False   # set busy externally before calling tone()!
+    self.busy  = False   # set early before calling tone() if necessary!
 
   def deinit(self):
     """ free ressources """
@@ -35,7 +35,13 @@ class AsyncBuzzer:
   async def tone(self,pitch,duration,volume=10,on_end=None):
     """ play the tone for the given duration (volume: 1-10) """
 
+    # Note: calling tone() will not start the method, but just return
+    #       a coroutine-object. Set buzzer.busy=True externally to
+    #       mark the buzzer as busy if necessary. But be aware that
+    #       Buzzer.busy is purely informational.
+
     await self._lock.acquire()
+    self.busy = True
     if not volume:
       await asyncio.sleep(duration)  # just sleep for for zero volume
       return
