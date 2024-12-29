@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Play "Happy Birthday" on a single buzzer using the MusicPlayer.
+# Play music on multiple Buzzers using the MusicPlayer class.
 #
 # Author: Bernhard Bablok
 # License: GPL3
@@ -44,10 +44,10 @@ HAPPY_BIRTHDAY = """
 """
 
 async def main():
-  player = MusicPlayer(
-    pins=[board.GP18,board.GP17,board.GP15],bpm=60,debug=True)
-  #await player.play(song=HAPPY_BIRTHDAY)
-  await player.play(filename="music.txt")
+  player = MusicPlayer(pins=[board.GP18,board.GP17,
+                             board.GP15,board.GP13],debug=True)
+  await player.play(song=HAPPY_BIRTHDAY,bpm=120)
+  #await player.play(filename="music/bach-prelude-C-Dur-complete.txt",bpm=60)
   player.deinit()
 
 asyncio.run(main())

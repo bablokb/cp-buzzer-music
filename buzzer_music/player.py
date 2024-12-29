@@ -30,12 +30,12 @@ GC_INTERVAL = 60
 class MusicPlayer:
   """ play notes on (multiple) buzzers """
 
-  def __init__(self, pins=[], bpm=60, ref=0.25, volume=10, qlength=10, debug=False):
+  def __init__(self, pins=[], volume=10, qlength=10, debug=False):
     """ constructor """
 
     self._buzzers = [AsyncBuzzer(pin) for pin in pins]
     self._volume  = volume
-    self._reader  = MusicReader(bpm,ref)
+    self._reader  = MusicReader()
     self._qlimit  = qlength*len(pins)
     self._queue   = []
     self._tasks   = []
@@ -79,11 +79,11 @@ class MusicPlayer:
 
   # --- reader task   --------------------------------------------------------
 
-  async def _read(self,filename,song):
+  async def _read(self,filename,song,bpm,ref):
     """ reader task providing notes to the queue """
 
     self._print("r: starting reader task...")
-    for note in self._reader.load(filename,song):
+    for note in self._reader.load(filename,song,bpm,ref):
       while len(self._queue) >= self._qlimit:
         await asyncio.sleep(0)
       self._print(f"r: appending note: {note}")
@@ -149,7 +149,7 @@ class MusicPlayer:
 
   # ---  play   --------------------------------------------------------------
 
-  async def play(self,filename=None, song=None, loop=False):
+  async def play(self,filename=None, song=None, bpm=60, ref=0.25, loop=False):
     """ play music """
     self._stop    = False
     self._pause   = False
@@ -157,7 +157,7 @@ class MusicPlayer:
     self._print("p: starting play")
     self._start = time.monotonic()
     self._tasks.extend(
-      [asyncio.create_task(self._read(filename,song)),
+      [asyncio.create_task(self._read(filename,song,bpm,ref)),
        asyncio.create_task(self._dispatch()),
        asyncio.create_task(self._gc())])
     await asyncio.gather(*self._tasks)

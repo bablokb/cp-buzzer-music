@@ -55,7 +55,7 @@ async def main(notes):
     await buzzer.tone(note[1],note[2])
   buzzer.deinit()
 
-reader = MusicReader(bpm=120)
-notes = reader.load(song=HAPPY_BIRTHDAY)
-#notes = reader.load(filename="music.txt")
+reader = MusicReader()
+notes = reader.load(song=HAPPY_BIRTHDAY,bpm=120)
+#notes = reader.load(filename="music/bach-prelude-C-Dur.txt",bpm=60)
 asyncio.run(main(notes))
