@@ -42,14 +42,19 @@ class MusicPlayer:
     self._debug   = debug
     self._stop    = False
     self._pause   = False
+
+    if debug:
+      self._msg = self._print
+    else:
+      self._msg = lambda msg: None
+
     self._start   = time.monotonic()  # will be updated by play
 
   # --- print debug-messages   -----------------------------------------------
 
   def _print(self,msg):
     """ print debug-messages """
-    if self._debug:
-      print(f"[{time.monotonic()-self._start:5.3f}] {msg}")
+    print(f"[{time.monotonic()-self._start:5.3f}] {msg}")
 
   # --- return first available buzzer   --------------------------------------
 
@@ -67,40 +72,40 @@ class MusicPlayer:
   async def _gc(self):
     """ run gc periodically """
     try:
-      self._print(f"g: starting GC-task")
+      self._msg(f"g: starting GC-task")
       while True:
         await asyncio.sleep(GC_INTERVAL)
-        self._print(f"g: free memory: {gc.mem_free()}")
+        self._msg(f"g: free memory: {gc.mem_free()}")
         gc.collect()
-        self._print(f"g: free memory: {gc.mem_free()}")
+        self._msg(f"g: free memory: {gc.mem_free()}")
     except:
       pass
-    self._print(f"g: GC-task finished")
+    self._msg(f"g: GC-task finished")
 
   # --- reader task   --------------------------------------------------------
 
   async def _read(self,filename,song,bpm,ref):
     """ reader task providing notes to the queue """
 
-    self._print("r: starting reader task...")
+    self._msg("r: starting reader task...")
     for note in self._reader.load(filename,song,bpm,ref):
       while len(self._queue) >= self._qlimit:
         await asyncio.sleep(0)
-      self._print(f"r: appending note: {note}")
+      self._msg(f"r: appending note: {note}")
       #self._queue.appendleft(note)
       self._queue.insert(0,note)
       await asyncio.sleep(0)
-    self._print("r: no more notes, appending None...")
+    self._msg("r: no more notes, appending None...")
     #self._queue.appendLeft(None)   # signal end
     self._queue.insert(0,None)   # signal end
-    self._print("r: end of reader task...")
+    self._msg("r: end of reader task...")
 
   # --- dispatcher task   ----------------------------------------------------
 
   async def _dispatch(self):
     """ dispatcher task providing notes to the buzzers """
 
-    self._print("d: starting dispatcher task...")
+    self._msg("d: starting dispatcher task...")
     self._start  = time.monotonic()
     end_of_music = self._start
     note_nr = 0
@@ -113,35 +118,35 @@ class MusicPlayer:
 
       # check for end of music and finish task
       if self._queue[-1] is None:  # end of music
-        self._print(f"d: end of music")
+        self._msg(f"d: end of music")
         self._queue.pop()
         # wait for music to finish
         await asyncio.sleep(max(0,end_of_music-time.monotonic()))
-        self._print(f"d: dispatcher task finished")
+        self._msg(f"d: dispatcher task finished")
         self.stop()
         return
 
       # peek at first note in queue, sleep until due
       rtime = time.monotonic() - self._start  # relative time
       if rtime < self._queue[-1][0]:
-        self._print(
+        self._msg(
           f"d: nothing due, waiting for {self._queue[-1][0]-rtime:.3}s...")
         await asyncio.sleep(self._queue[-1][0]-rtime)
 
       # now at least one note is due: dispatch notes to buzzers
-      self._print(f"d: dispatching notes")
+      self._msg(f"d: dispatching notes")
       rtime = time.monotonic() - self._start
       while (len(self._queue) and
              self._queue[-1] is not None and rtime >= self._queue[-1][0]):
         note = self._queue.pop()
         note_nr += 1
-        self._print(f"   waiting for buzzer...")
+        self._msg(f"   waiting for buzzer...")
         bnr,b = await self._free_buzzer()
-        self._print(f"   playing note {note_nr} on buzzer {bnr}: {note}")
+        self._msg(f"   playing note {note_nr} on buzzer {bnr}: {note}")
         t = asyncio.create_task(b.tone(*note[1:]))
         rtime = time.monotonic() - self._start
         end_of_music = max(end_of_music,time.monotonic()+note[2])
-      self._print(f"d: dispatching done")
+      self._msg(f"d: dispatching done")
 
   # ---  play   --------------------------------------------------------------
 
@@ -151,13 +156,13 @@ class MusicPlayer:
     self._pause   = False
     self.init()
 
-    self._print("p: starting play")
+    self._msg("p: starting play")
     self._tasks.extend(
       [asyncio.create_task(self._read(filename,song,bpm,ref)),
        asyncio.create_task(self._dispatch()),
        asyncio.create_task(self._gc())])
     await asyncio.gather(*self._tasks)
-    self._print("p: play finished")
+    self._msg("p: play finished")
 
   # --- pause song   ----------------------------------------------------------
 
