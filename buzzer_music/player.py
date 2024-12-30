@@ -153,6 +153,7 @@ class MusicPlayer:
     """ play music """
     self._stop    = False
     self._pause   = False
+    self.init()
 
     self._print("p: starting play")
     self._start = time.monotonic()
@@ -182,12 +183,6 @@ class MusicPlayer:
     self._tasks =  []
     self._stop = True
 
-  # --- restart song   -------------------------------------------------------
-
-  def restart(self):
-    """ restart the song from the beginning """
-    pass
-
   # --- resume song   --------------------------------------------------------
 
   def resume(self):
@@ -195,7 +190,15 @@ class MusicPlayer:
 
     self._pause = False
 
-  # --- deinit buzzers   ------------------------------------------------------
+  # --- init buzzers   -------------------------------------------------------
+
+  def init(self):
+    """ init buzzers """
+
+    for buzzer in self._buzzers:
+      buzzer.init()
+
+  # --- deinit buzzers   -----------------------------------------------------
 
   def deinit(self):
     """ deinit buzzers """

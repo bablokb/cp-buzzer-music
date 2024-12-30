@@ -46,8 +46,9 @@ HAPPY_BIRTHDAY = """
 async def main():
   player = MusicPlayer(pins=[board.GP18,board.GP17,
                              board.GP15,board.GP13],debug=True)
-  await player.play(song=HAPPY_BIRTHDAY,bpm=120)
+  await player.play(song=HAPPY_BIRTHDAY,bpm=160)
   #await player.play(filename="music/bach-prelude-C-Dur-complete.txt",bpm=60)
+  await player.play(song=HAPPY_BIRTHDAY,bpm=120)
   player.deinit()
 
 asyncio.run(main())

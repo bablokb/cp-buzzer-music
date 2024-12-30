@@ -24,13 +24,22 @@ class AsyncBuzzer:
 
   def __init__(self,pin):
     """ constructor """
-    self._pwm  = pwmio.PWMOut(pin,variable_frequency=True)
+    self._pin = pin
+    self._pwm = None
+    self.init()
     self._lock = asyncio.Lock()
     self.busy  = False   # set early before calling tone() if necessary!
 
   def deinit(self):
     """ free ressources """
-    self._pwm.deinit()
+    if self._pwm:
+      self._pwm.deinit()
+      self._pwm = None
+
+  def init(self):
+    """ re-initialize PWM """
+    if not self._pwm:
+      self._pwm  = pwmio.PWMOut(self._pin,variable_frequency=True)
 
   async def tone(self,pitch,duration,volume=10,on_end=None):
     """ play the tone for the given duration (volume: 1-10) """
