@@ -46,9 +46,22 @@ HAPPY_BIRTHDAY = """
 async def main():
   player = MusicPlayer(pins=[board.GP18,board.GP17,
                              board.GP15,board.GP13],debug=True)
+
+  print("playing 'Happy Birthday' with 160 bpm...")
   await player.play(song=HAPPY_BIRTHDAY,bpm=160)
-  #await player.play(filename="music/bach-prelude-C-Dur-complete.txt",bpm=60)
+  print("playing 'Happy Birthday' with 120 bpm...")
   await player.play(song=HAPPY_BIRTHDAY,bpm=120)
+
+  # from: https://onlinesequencer.net/1914040
+  # runs fine on a single buzzer
+  #print("playing 'Bach Prelude Nr.1 C-Major' at 140 bpm ...")
+  #await player.play(filename="music/bach-prelude-C-Dur-1B.txt")
+
+  # from: https://onlinesequencer.net/2244697
+  # needs four buzzers
+  #print("playing 'Bach Prelude Nr.1 C-Major' at 80 bpm ...")
+  #await player.play(filename="music/bach-prelude-C-Dur-4B.txt")
+
   player.deinit()
 
 asyncio.run(main())
