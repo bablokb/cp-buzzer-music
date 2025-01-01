@@ -111,6 +111,10 @@ class MusicPlayer:
     note_nr = 0
     while True:
 
+      # check for pause
+      while self._pause:
+        await asyncio.sleep(0)
+
       # check for empty queue
       if not len(self._queue):     # nothing to play
         await asyncio.sleep(0)
@@ -187,7 +191,6 @@ class MusicPlayer:
 
   def resume(self):
     """ resume playing after pause """
-
     self._pause = False
 
   # --- init buzzers   -------------------------------------------------------
