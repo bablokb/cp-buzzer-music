@@ -160,19 +160,22 @@ class MusicPlayer:
     self._pause   = False
     self.init()
 
-    self._msg("p: starting play")
-    self._tasks.extend(
-      [asyncio.create_task(self._read(filename,song,bpm,ref)),
-       asyncio.create_task(self._dispatch()),
-       asyncio.create_task(self._gc())])
-    await asyncio.gather(*self._tasks)
-    self._msg("p: play finished")
+    while True:
+      self._msg("p: starting play")
+      self._tasks.extend(
+        [asyncio.create_task(self._read(filename,song,bpm,ref)),
+         asyncio.create_task(self._dispatch()),
+         asyncio.create_task(self._gc())])
+      await asyncio.gather(*self._tasks)
+      self._msg("p: play finished")
+      if not loop:
+        break
 
   # --- pause song   ----------------------------------------------------------
 
   def pause(self):
     """ pause the player """
-    self._pause   = True
+    self._pause = True
 
   # --- stop song   ----------------------------------------------------------
 
