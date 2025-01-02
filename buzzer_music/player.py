@@ -30,11 +30,12 @@ GC_INTERVAL = 60
 class MusicPlayer:
   """ play notes on (multiple) buzzers """
 
-  def __init__(self, pins=[], volume=10, qlength=10, debug=False):
+  def __init__(self, pins=[], volume=10, qlength=10, skip=False, debug=False):
     """ constructor """
 
     self._buzzers = [AsyncBuzzer(pin) for pin in pins]
     self._volume  = volume
+    self._skip    = skip
     self._reader  = MusicReader()
     self._qlimit  = qlength*len(pins)
     self._queue   = []
@@ -66,6 +67,8 @@ class MusicPlayer:
         if not buzzer.busy:
           buzzer.busy = True
           return index,buzzer
+      if self._skip:
+        return 99,None
       await asyncio.sleep(0)
 
   # --- gc task   ------------------------------------------------------------
@@ -152,6 +155,9 @@ class MusicPlayer:
         note_nr += 1
         self._msg(f"   waiting for buzzer...")
         bnr,b = await self._free_buzzer()
+        if not b:
+          self._msg(f"   skipping note {note_nr}: {note}")
+          continue
         self._msg(f"   playing note {note_nr} on buzzer {bnr}: {note}")
         t = asyncio.create_task(b.tone(*note[1:]))
         rtime = time.monotonic() - self._start
