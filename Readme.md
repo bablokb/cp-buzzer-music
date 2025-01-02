@@ -147,7 +147,9 @@ Some random notes:
   - `MusicPlayer` fails in dispatching notes if there are more notes than
     buzzers for a given timepoint. This is no problem if notes only overlap
     due to rounding effects, but it just does not work to play a melody and
-    a full chord on only four buzzers.
+    a full chord on only four buzzers. The constructor of `MusicPlayer` has
+    a parameter `skip=False`. Setting `skip=True` will skip notes if all
+    buzzers are busy (usually an inferior choice).
   - Onlinesequencer.net often provides multiple versions of a song. Simpler
     versions tend to sound better than complex, fat versions.
   - Be aware of copyright issues when copying music.
