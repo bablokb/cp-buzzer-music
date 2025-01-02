@@ -31,7 +31,15 @@ class MusicPlayer:
   """ play notes on (multiple) buzzers """
 
   def __init__(self, pins=[], volume=10, qlength=10, skip=False, debug=False):
-    """ constructor """
+    """ constructor.
+
+    pins: list of board.GPxxx
+    volume: 1-10
+    qlength: read ahead limit for queue
+             (the default of 10 entries per buzzer should be fine)
+    skip: if True, don't play notes if no buzzer is free (else wait)
+    debug: print a lot of debug-messages
+    """
 
     self._buzzers = [AsyncBuzzer(pin) for pin in pins]
     self._volume  = volume
@@ -167,7 +175,20 @@ class MusicPlayer:
   # ---  play   --------------------------------------------------------------
 
   async def play(self,filename=None, song=None, bpm=None, ref=None, loop=False):
-    """ play music """
+    """ play music.
+
+    filename: read notes from given file (None otherwise)
+    song: read notes from given string (None otherwise)
+    bpm: beats-per-minute
+    ref: reference note for bpm (e.g. 0.25 for quarter note)
+    loop: False|True
+
+    The defaults for bpm/ref are 60/0.25. When reading from a file,
+    bpm=None/ref=None will either use the defaults, or any values found
+    in the file. Explicit values of bpm/ref will override any settings
+    from the file.
+    """
+
     self._stop    = False
     self._pause   = False
     self._pstart  = 0
