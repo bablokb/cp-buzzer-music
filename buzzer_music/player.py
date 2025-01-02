@@ -42,6 +42,7 @@ class MusicPlayer:
     self._debug   = debug
     self._stop    = False
     self._pause   = False
+    self._pstart = 0
 
     if debug:
       self._msg = self._print
@@ -115,6 +116,11 @@ class MusicPlayer:
       while self._pause:
         await asyncio.sleep(0)
 
+      # fix relative time reference in case of pause
+      if self._pstart:
+        self._start += time.monotonic() - self._pstart  # elapsed during pause
+        self._pstart = 0
+
       # check for empty queue
       if not len(self._queue):     # nothing to play
         await asyncio.sleep(0)
@@ -140,7 +146,7 @@ class MusicPlayer:
       # now at least one note is due: dispatch notes to buzzers
       self._msg(f"d: dispatching notes")
       rtime = time.monotonic() - self._start
-      while (len(self._queue) and
+      while (not self._pause and len(self._queue) and
              self._queue[-1] is not None and rtime >= self._queue[-1][0]):
         note = self._queue.pop()
         note_nr += 1
@@ -158,6 +164,7 @@ class MusicPlayer:
     """ play music """
     self._stop    = False
     self._pause   = False
+    self._pstart  = 0
     self.init()
 
     while True:
@@ -171,12 +178,6 @@ class MusicPlayer:
       if not loop:
         break
 
-  # --- pause song   ----------------------------------------------------------
-
-  def pause(self):
-    """ pause the player """
-    self._pause = True
-
   # --- stop song   ----------------------------------------------------------
 
   def stop(self):
@@ -189,6 +190,13 @@ class MusicPlayer:
         pass
     self._tasks =  []
     self._stop = True
+
+  # --- pause song   ----------------------------------------------------------
+
+  def pause(self):
+    """ pause the player """
+    self._pause  = True
+    self._pstart = time.monotonic()
 
   # --- resume song   --------------------------------------------------------
 
