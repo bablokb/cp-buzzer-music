@@ -1,6 +1,8 @@
 Asyncio-based Library for Buzzer-Music (CircuitPython)
 ======================================================
 
+![](buzzers.jpg)
+
 Introduction
 ------------
 
@@ -91,6 +93,8 @@ select and copy all notes. Selecting all notes works either with
 'CTRL-A' or with the select-all button, copying with 'CTRL-C'. Make
 sure that your cursor is somewhere above the score (but don't click
 into it) when using 'CTRL-A/CTRL-C'.
+
+![](editmode.png)
 
 Once copied, insert the notes either directly into your program as a
 string (works for short pieces), or paste it into a file. In the first
